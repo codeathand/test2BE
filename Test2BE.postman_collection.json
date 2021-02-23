@@ -1,0 +1,191 @@
+{
+	"info": {
+		"_postman_id": "b2de9a5c-35bc-4e55-a323-165ddb67e12d",
+		"name": "Test2BE",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"// set authHeader value from response for getting api key\r",
+							"pm.environment.set(\"auth\", jsonData.authHeader);\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"email\":\"kekac34316@geeky83.com\",\"password\":\"Bc231\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://portal-api.coinmarketcap.com/v1/login",
+					"protocol": "https",
+					"host": [
+						"portal-api",
+						"coinmarketcap",
+						"com"
+					],
+					"path": [
+						"v1",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getKey",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"// set api key\r",
+							"pm.environment.set(\"apiKey\", jsonData.keyPlan.key);\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "{{auth}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://portal-api.coinmarketcap.com/v1/accounts/my/plan/info",
+					"protocol": "https",
+					"host": [
+						"portal-api",
+						"coinmarketcap",
+						"com"
+					],
+					"path": [
+						"v1",
+						"accounts",
+						"my",
+						"plan",
+						"info"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getCoin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"tests[\"Id of cryptocurrency is correct\"] = jsonData.data.BOLT[0].id === 3843;\r",
+							"tests[\"Error message is null\"] = jsonData.status.error_message === null;\r",
+							"tests[\"Github link is ok\"] = jsonData.data.BOLT[0].urls.source_code[0] === \"https://github.com/SyQic-Ops/bolt\";\r",
+							"tests[\"Data when coin has been added is correct\"] = jsonData.data.BOLT[0].date_added === \"2019-04-05T00:00:00.000Z\";\r",
+							"tests[\"Logo url is correct\"] = jsonData.data.BOLT[0].logo === \"https://s2.coinmarketcap.com/static/img/coins/64x64/3843.png\";\r",
+							"tests[\"Website url is correct\"] = jsonData.data.BOLT[0].urls.website[0] === \"https://bolt.global/\";\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://pro-api.coinmarketcap.com/v2/cryptocurrency/info?CMC_PRO_API_KEY={{apiKey}}&symbol=BOLT",
+					"protocol": "https",
+					"host": [
+						"pro-api",
+						"coinmarketcap",
+						"com"
+					],
+					"path": [
+						"v2",
+						"cryptocurrency",
+						"info"
+					],
+					"query": [
+						{
+							"key": "CMC_PRO_API_KEY",
+							"value": "{{apiKey}}"
+						},
+						{
+							"key": "symbol",
+							"value": "BOLT"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

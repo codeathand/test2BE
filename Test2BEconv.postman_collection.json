@@ -1,0 +1,420 @@
+{
+	"info": {
+		"_postman_id": "ee568b20-8140-4626-b857-f624c90e1b44",
+		"name": "Test2BEconv",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"// set authHeader value from response for getting api key\r",
+							"pm.environment.set(\"auth\", jsonData.authHeader);\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"email\":\"kekac34316@geeky83.com\",\"password\":\"Bc231\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://portal-api.coinmarketcap.com/v1/login",
+					"protocol": "https",
+					"host": [
+						"portal-api",
+						"coinmarketcap",
+						"com"
+					],
+					"path": [
+						"v1",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getKey",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"// set api key\r",
+							"pm.environment.set(\"apiKey\", jsonData.keyPlan.key);\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": "{{auth}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://portal-api.coinmarketcap.com/v1/accounts/my/plan/info",
+					"protocol": "https",
+					"host": [
+						"portal-api",
+						"coinmarketcap",
+						"com"
+					],
+					"path": [
+						"v1",
+						"accounts",
+						"my",
+						"plan",
+						"info"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "retrieveID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"// retrieve ids of DEM, BTC and ZER as value for conversion, and USD id as final conversion value\r",
+							"for (let i = 0; i < jsonData.data.length; i++) {\r",
+							"    pm.environment.set(`${jsonData.data[i].symbol}ID`, jsonData.data[i].id);\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://pro-api.coinmarketcap.com/v1/cryptocurrency/map?CMC_PRO_API_KEY={{apiKey}}&symbol=DEM,BTC,ZER,USD",
+					"protocol": "https",
+					"host": [
+						"pro-api",
+						"coinmarketcap",
+						"com"
+					],
+					"path": [
+						"v1",
+						"cryptocurrency",
+						"map"
+					],
+					"query": [
+						{
+							"key": "CMC_PRO_API_KEY",
+							"value": "{{apiKey}}"
+						},
+						{
+							"key": "symbol",
+							"value": "DEM,BTC,ZER,USD"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "conversionDEM",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"demID = parseInt(pm.environment.get(\"DEMID\"));\r",
+							"\r",
+							"// check if value has price after conversion, and validate that is greater than 0\r",
+							"pm.test(\"Expect that converted value for DEM is not undefined\", function () {\r",
+							"    pm.expect(jsonData.data.quote[demID]).not.undefined;\r",
+							"    if (pm.expect(jsonData.data.quote[demID]).not.undefined) {\r",
+							"        // pm.environment.set(\"convDEM\", jsonData.data.quote[demID].price);\r",
+							"        pm.expect(jsonData.data.quote[demID].price).to.be.greaterThan(0);\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://pro-api.coinmarketcap.com/v1/tools/price-conversion?CMC_PRO_API_KEY={{apiKey}}&id={{USDID}}&convert_id={{DEMID}}&amount=10",
+					"protocol": "https",
+					"host": [
+						"pro-api",
+						"coinmarketcap",
+						"com"
+					],
+					"path": [
+						"v1",
+						"tools",
+						"price-conversion"
+					],
+					"query": [
+						{
+							"key": "CMC_PRO_API_KEY",
+							"value": "{{apiKey}}"
+						},
+						{
+							"key": "id",
+							"value": "{{USDID}}"
+						},
+						{
+							"key": "convert_id",
+							"value": "{{DEMID}}"
+						},
+						{
+							"key": "amount",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "conversionBTC",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"btcID = parseInt(pm.environment.get(\"BTCID\"));\r",
+							"\r",
+							"// check if value has price after conversion, and validate that is greater than 0\r",
+							"pm.test(\"Expect that converted value for BTC is not undefined\", function () {\r",
+							"    pm.expect(jsonData.data.quote[btcID]).not.undefined;\r",
+							"    if (pm.expect(jsonData.data.quote[btcID]).not.undefined) {\r",
+							"        // pm.environment.set(\"convBTC\", jsonData.data.quote[btcID].price);\r",
+							"        pm.expect(jsonData.data.quote[btcID].price).to.be.greaterThan(0);\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://pro-api.coinmarketcap.com/v1/tools/price-conversion?CMC_PRO_API_KEY={{apiKey}}&id={{USDID}}&convert_id={{BTCID}}&amount=10",
+					"protocol": "https",
+					"host": [
+						"pro-api",
+						"coinmarketcap",
+						"com"
+					],
+					"path": [
+						"v1",
+						"tools",
+						"price-conversion"
+					],
+					"query": [
+						{
+							"key": "CMC_PRO_API_KEY",
+							"value": "{{apiKey}}"
+						},
+						{
+							"key": "id",
+							"value": "{{USDID}}"
+						},
+						{
+							"key": "convert_id",
+							"value": "{{BTCID}}"
+						},
+						{
+							"key": "amount",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "conversionZER",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"zerID = parseInt(pm.environment.get(\"ZERID\"));\r",
+							"\r",
+							"// check if value has price after conversion, and validate that is greater than 0\r",
+							"pm.test(\"Expect that converted value for ZER is not undefined\", function () {\r",
+							"    pm.expect(jsonData.data.quote[zerID]).not.undefined;\r",
+							"    if (pm.expect(jsonData.data.quote[zerID]).not.undefined) {\r",
+							"        // pm.environment.set(\"convZER\", jsonData.data.quote[zerID].price);\r",
+							"        pm.expect(jsonData.data.quote[zerID].price).to.be.greaterThan(0);\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://pro-api.coinmarketcap.com/v1/tools/price-conversion?CMC_PRO_API_KEY={{apiKey}}&id={{USDID}}&convert_id={{ZERID}}&amount=10",
+					"protocol": "https",
+					"host": [
+						"pro-api",
+						"coinmarketcap",
+						"com"
+					],
+					"path": [
+						"v1",
+						"tools",
+						"price-conversion"
+					],
+					"query": [
+						{
+							"key": "CMC_PRO_API_KEY",
+							"value": "{{apiKey}}"
+						},
+						{
+							"key": "id",
+							"value": "{{USDID}}"
+						},
+						{
+							"key": "convert_id",
+							"value": "{{ZERID}}"
+						},
+						{
+							"key": "amount",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
